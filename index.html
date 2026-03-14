@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Camera Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #0052a3;
+        }
+
+        button:active {
+            background: #003d7a;
+        }
+
+        .status {
+            padding: 10px 20px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .status.loading {
+            color: #ff9500;
+        }
+
+        .status.error {
+            color: #ff3b30;
+        }
+
+        .status.success {
+            color: #34c759;
+        }
+
+        .camera-display {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #cameraImage {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 4px;
+            background: #000;
+            display: none;
+        }
+
+        .placeholder {
+            color: #666;
+            padding: 100px 20px;
+            font-size: 16px;
+        }
+
+        .camera-list {
+            margin-top: 20px;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .camera-list h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .camera-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .camera-item input {
+            flex: 1;
+        }
+
+        .camera-item button {
+            padding: 8px 16px;
+            background: #ff3b30;
+            font-size: 12px;
+        }
+
+        .camera-item button:hover {
+            background: #ff2d22;
+        }
+
+        .add-camera {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-camera input {
+            flex: 1;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: #fff;
+            border-bottom-color: #0066cc;
+        }
+
+        .tab-button:hover {
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #cameraVideo {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 4px;
+            background: #000;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Camera Viewer</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('network')">Network Cameras</button>
+            <button class="tab-button" onclick="switchTab('local')">Local Cameras</button>
+        </div>
+
+        <!-- Network Camera Tab -->
+        <div id="network-tab" class="tab-content active">
+            <div class="controls">
+                <div class="form-group">
+                    <label>Select Camera</label>
+                    <select id="cameraSelect">
+                        <option value="">-- No cameras added --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Refresh Rate (seconds)</label>
+                    <input type="number" id="refreshRate" value="3" min="1" max="60">
+                </div>
+
+                <button onclick="startViewing()">Start</button>
+                <button onclick="stopViewing()">Stop</button>
+            </div>
+
+            <div class="status" id="status">Ready</div>
+
+            <div class="camera-display">
+                <img id="cameraImage" alt="Camera Feed">
+                <div class="placeholder" id="placeholder">Select a camera and click Start to view</div>
+            </div>
+
+            <div class="camera-list">
+                <h3>Manage Network Cameras</h3>
+                <div class="add-camera">
+                    <input type="text" id="newCameraUrl" placeholder="Enter camera URL (e.g., http://192.168.1.100:8080/image)">
+                    <input type="text" id="newCameraName" placeholder="Camera name (optional)">
+                    <button onclick="addCamera()">Add Camera</button>
+                </div>
+
+                <div id="cameraListContainer" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- Local Camera Tab -->
+        <div id="local-tab" class="tab-content">
+            <div class="controls">
+                <div class="form-group">
+                    <label>Select Local Camera</label>
+                    <select id="localCameraSelect">
+                        <option value="">-- Loading cameras... --</option>
+                    </select>
+                </div>
+
+                <button onclick="startLocalCamera()">Start</button>
+                <button onclick="stopLocalCamera()">Stop</button>
+            </div>
+
+            <div class="status" id="localStatus">Ready</div>
+
+            <div class="camera-display">
+                <video id="cameraVideo" autoplay playsinline muted></video>
+                <div class="placeholder" id="localPlaceholder">Select a local camera and click Start to view</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cameras = JSON.parse(localStorage.getItem('cameras')) || [];
+        let currentRefreshInterval = null;
+        let isViewing = false;
+        let localStream = null;
+        let localCameras = [];
+
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.getElementById('network-tab').classList.remove('active');
+            document.getElementById('local-tab').classList.remove('active');
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab and activate button
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Stop any ongoing streaming when switching tabs
+            if (tabName === 'network') {
+                stopLocalCamera();
+            } else {
+                stopViewing();
+            }
+        }
+
+        // ==================== NETWORK CAMERAS ====================
+
+        // Initialize
+        function init() {
+            updateCameraSelect();
+            renderCameraList();
+            initLocalCameras();
+        }
+
+        // Add a new camera
+        function addCamera() {
+            const url = document.getElementById('newCameraUrl').value.trim();
+            const name = document.getElementById('newCameraName').value.trim() || `Camera ${cameras.length + 1}`;
+
+            if (!url) {
+                setStatus('Please enter a camera URL', 'error');
+                return;
+            }
+
+            // Basic URL validation
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                setStatus('URL must start with http:// or https://', 'error');
+                return;
+            }
+
+            cameras.push({ id: Date.now(), name, url });
+            localStorage.setItem('cameras', JSON.stringify(cameras));
+
+            document.getElementById('newCameraUrl').value = '';
+            document.getElementById('newCameraName').value = '';
+
+            updateCameraSelect();
+            renderCameraList();
+            setStatus(`Camera "${name}" added`, 'success');
+        }
+
+        // Remove a camera
+        function removeCamera(id) {
+            cameras = cameras.filter(c => c.id !== id);
+            localStorage.setItem('cameras', JSON.stringify(cameras));
+            updateCameraSelect();
+            renderCameraList();
+
+            if (isViewing && document.getElementById('cameraSelect').value === '') {
+                stopViewing();
+            }
+        }
+
+        // Update the camera select dropdown
+        function updateCameraSelect() {
+            const select = document.getElementById('cameraSelect');
+            const currentValue = select.value;
+
+            select.innerHTML = cameras.length === 0
+                ? '<option value="">-- No cameras added --</option>'
+                : '';
+
+            cameras.forEach(camera => {
+                const option = document.createElement('option');
+                option.value = camera.id;
+                option.textContent = camera.name;
+                select.appendChild(option);
+            });
+
+            if (cameras.some(c => c.id == currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Render camera list
+        function renderCameraList() {
+            const container = document.getElementById('cameraListContainer');
+
+            if (cameras.length === 0) {
+                container.innerHTML = '<p style="color: #666;">No cameras added yet</p>';
+                return;
+            }
+
+            container.innerHTML = cameras.map(camera => `
+                <div class="camera-item">
+                    <div style="flex: 1; text-align: left;">
+                        <div style="font-weight: 500;">${camera.name}</div>
+                        <div style="color: #666; font-size: 12px; word-break: break-all;">${camera.url}</div>
+                    </div>
+                    <button onclick="removeCamera(${camera.id})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Start viewing
+        function startViewing() {
+            const cameraId = document.getElementById('cameraSelect').value;
+
+            if (!cameraId) {
+                setStatus('Please select a camera', 'error');
+                return;
+            }
+
+            isViewing = true;
+            refreshImage(); // Load immediately
+            startRefreshTimer();
+            setStatus('Viewing...', 'success');
+        }
+
+        // Stop viewing
+        function stopViewing() {
+            isViewing = false;
+            if (currentRefreshInterval) {
+                clearInterval(currentRefreshInterval);
+                currentRefreshInterval = null;
+            }
+            document.getElementById('cameraImage').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+            setStatus('Stopped', 'error');
+        }
+
+        // Start refresh timer
+        function startRefreshTimer() {
+            if (currentRefreshInterval) {
+                clearInterval(currentRefreshInterval);
+            }
+
+            const refreshRate = parseInt(document.getElementById('refreshRate').value) * 1000;
+            currentRefreshInterval = setInterval(refreshImage, refreshRate);
+        }
+
+        // Refresh image
+        function refreshImage() {
+            if (!isViewing) return;
+
+            const cameraId = document.getElementById('cameraSelect').value;
+            const camera = cameras.find(c => c.id == cameraId);
+
+            if (!camera) {
+                setStatus('Camera not found', 'error');
+                return;
+            }
+
+            setStatus('Loading...', 'loading');
+
+            // Add cache busting to prevent stale images
+            const url = camera.url + (camera.url.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('cameraImage').src = url;
+                document.getElementById('cameraImage').style.display = 'block';
+                document.getElementById('placeholder').style.display = 'none';
+                setStatus(`Viewing: ${camera.name} (Last updated: ${new Date().toLocaleTimeString()})`, 'success');
+            };
+
+            img.onerror = function() {
+                setStatus(`Error loading image from ${camera.name}`, 'error');
+            };
+
+            img.src = url;
+        }
+
+        // Set status message
+        function setStatus(message, type = '') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        // ==================== LOCAL CAMERAS ====================
+
+        // Initialize local cameras
+        async function initLocalCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                localCameras = devices.filter(device => device.kind === 'videoinput');
+
+                updateLocalCameraSelect();
+
+                if (localCameras.length === 0) {
+                    setLocalStatus('No local cameras found', 'error');
+                }
+            } catch (error) {
+                setLocalStatus('Error accessing cameras: ' + error.message, 'error');
+            }
+        }
+
+        // Update the local camera select dropdown
+        function updateLocalCameraSelect() {
+            const select = document.getElementById('localCameraSelect');
+
+            if (localCameras.length === 0) {
+                select.innerHTML = '<option value="">-- No cameras found --</option>';
+                return;
+            }
+
+            select.innerHTML = '';
+            localCameras.forEach((camera, index) => {
+                const option = document.createElement('option');
+                option.value = camera.deviceId;
+                option.textContent = camera.label || `Camera ${index + 1}`;
+                select.appendChild(option);
+            });
+
+            if (localCameras.length > 0) {
+                select.value = localCameras[0].deviceId;
+            }
+        }
+
+        // Start local camera
+        async function startLocalCamera() {
+            const cameraId = document.getElementById('localCameraSelect').value;
+
+            if (!cameraId) {
+                setLocalStatus('Please select a camera', 'error');
+                return;
+            }
+
+            try {
+                setLocalStatus('Requesting camera access...', 'loading');
+
+                const constraints = {
+                    video: {
+                        deviceId: { exact: cameraId }
+                    }
+                };
+
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = localStream;
+                video.style.display = 'block';
+                document.getElementById('localPlaceholder').style.display = 'none';
+
+                const cameraName = localCameras.find(c => c.deviceId === cameraId)?.label || 'Local Camera';
+                setLocalStatus(`Viewing: ${cameraName}`, 'success');
+            } catch (error) {
+                setLocalStatus('Error accessing camera: ' + error.message, 'error');
+            }
+        }
+
+        // Stop local camera
+        function stopLocalCamera() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            const video = document.getElementById('cameraVideo');
+            video.style.display = 'none';
+            document.getElementById('localPlaceholder').style.display = 'block';
+            setLocalStatus('Stopped', 'error');
+        }
+
+        // Set local status message
+        function setLocalStatus(message, type = '') {
+            const status = document.getElementById('localStatus');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        // ==================== EVENT LISTENERS ====================
+
+        // Allow Enter key to add camera
+        document.getElementById('newCameraUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addCamera();
+        });
+
+        document.getElementById('newCameraName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addCamera();
+        });
+
+        // Update refresh timer when rate changes
+        document.getElementById('refreshRate').addEventListener('change', function() {
+            if (isViewing) {
+                startRefreshTimer();
+            }
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
