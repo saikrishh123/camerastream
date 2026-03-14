@@ -236,6 +236,7 @@
         <div class="tabs">
             <button class="tab-button active" onclick="switchTab('network')">Network Cameras</button>
             <button class="tab-button" onclick="switchTab('local')">Local Cameras</button>
+            <button class="tab-button" onclick="switchTab('readme')">README</button>
         </div>
 
         <!-- Network Camera Tab -->
@@ -295,6 +296,76 @@
             <div class="camera-display">
                 <video id="cameraVideo" autoplay playsinline muted></video>
                 <div class="placeholder" id="localPlaceholder">Select a local camera and click Start to view</div>
+            </div>
+        </div>
+
+        <!-- README Tab -->
+        <div id="readme-tab" class="tab-content">
+            <div style="background: #2a2a2a; padding: 20px; border-radius: 8px; line-height: 1.6;">
+                <h2 style="margin-bottom: 20px; color: #fff;">Camera Viewer - Setup Guide</h2>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: #0066cc;">Hikvision DS Camera Setup</h3>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">1. Find Your Camera's IP Address</h4>
+                <ul style="margin-left: 20px; color: #ccc;">
+                    <li>Check your router's connected devices list</li>
+                    <li>Use Hikvision iVMS software to discover cameras</li>
+                    <li>Scan your network: <code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px;">arp-scan -l</code></li>
+                    <li>Typical format: <code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px;">192.168.x.x</code></li>
+                </ul>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">2. Access Camera Web Interface</h4>
+                <ul style="margin-left: 20px; color: #ccc;">
+                    <li>Open <code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px;">http://192.168.1.100</code> in your browser (replace with your camera's IP)</li>
+                    <li>Default login: <strong>admin</strong> / <strong>12345</strong></li>
+                    <li>Go to Settings → Live View or Streaming to find the image URL</li>
+                </ul>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">3. Common Hikvision Image URLs</h4>
+                <p style="color: #ccc;">Try these URLs in the "Network Cameras" tab:</p>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin: 10px 0; font-family: monospace; color: #0a0; overflow-x: auto; word-break: break-all;">
+                    <div style="margin-bottom: 10px;">http://192.168.1.100/ISAPI/Streaming/channels/101/picture</div>
+                    <div style="margin-bottom: 10px;">http://192.168.1.100/cgi-bin/snapshot.cgi</div>
+                    <div style="margin-bottom: 10px;">http://192.168.1.100/image</div>
+                    <div style="margin-bottom: 10px;">http://192.168.1.100:8080/image</div>
+                    <div>http://192.168.1.100/cap/mjpeg/video</div>
+                </div>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">4. If You Need Authentication</h4>
+                <p style="color: #ccc;">Some cameras require credentials in the URL:</p>
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin: 10px 0; font-family: monospace; color: #0a0; word-break: break-all;">
+                    http://admin:12345@192.168.1.100/ISAPI/Streaming/channels/101/picture
+                </div>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">5. Test the URL</h4>
+                <ol style="margin-left: 20px; color: #ccc;">
+                    <li>Open the URL in your browser directly</li>
+                    <li>If you see a live image, that's the correct URL</li>
+                    <li>Copy that URL into the "Network Cameras" tab</li>
+                </ol>
+
+                <h4 style="margin-top: 15px; margin-bottom: 10px; color: #aaa;">6. Add to This App</h4>
+                <ol style="margin-left: 20px; color: #ccc;">
+                    <li>Go to the "Network Cameras" tab</li>
+                    <li>Enter your working camera URL</li>
+                    <li>Give it a name (e.g., "Hikvision Camera 1")</li>
+                    <li>Click "Add Camera"</li>
+                    <li>Select it from the dropdown and click "Start"</li>
+                </ol>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: #0066cc;">Multiple Cameras</h3>
+                <p style="color: #ccc;">You can add multiple Hikvision cameras by repeating step 6 with different URLs or IP addresses. Each camera will appear in the dropdown list.</p>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: #0066cc;">Local Cameras</h3>
+                <p style="color: #ccc;">The "Local Cameras" tab shows webcams connected directly to your computer (USB, built-in, etc.), not network cameras.</p>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px; color: #0066cc;">Troubleshooting</h3>
+                <ul style="margin-left: 20px; color: #ccc;">
+                    <li><strong>No image appears:</strong> Check that the URL is correct by opening it in your browser first</li>
+                    <li><strong>CORS error in console:</strong> Some cameras may block cross-origin requests - contact camera manufacturer</li>
+                    <li><strong>Camera not accessible:</strong> Verify IP address, check network firewall, confirm default credentials</li>
+                    <li><strong>Browser console (F12):</strong> Check for detailed error messages</li>
+                </ul>
             </div>
         </div>
     </div>
