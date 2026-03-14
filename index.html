@@ -497,15 +497,32 @@
         // Initialize local cameras
         async function initLocalCameras() {
             try {
+                console.log('Initializing local cameras...');
+
+                // Request permission first to get camera labels
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    console.log('Camera permission granted');
+                } catch (e) {
+                    console.log('Camera permission denied or not available');
+                }
+
                 const devices = await navigator.mediaDevices.enumerateDevices();
+                console.log('All devices:', devices);
                 localCameras = devices.filter(device => device.kind === 'videoinput');
+                console.log('Video input devices found:', localCameras);
 
                 updateLocalCameraSelect();
 
                 if (localCameras.length === 0) {
+                    console.warn('No video input devices detected');
                     setLocalStatus('No local cameras found', 'error');
+                } else {
+                    console.log('Found ' + localCameras.length + ' camera(s)');
                 }
             } catch (error) {
+                console.error('Error initializing cameras:', error);
                 setLocalStatus('Error accessing cameras: ' + error.message, 'error');
             }
         }
